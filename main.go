@@ -10,6 +10,7 @@ import (
 	"container/heap"
 	"strconv"
 	"math"
+	"time"
 )
 
 type myMux map[string]map[string]func(http.ResponseWriter, *http.Request)
@@ -63,6 +64,8 @@ func handleHome(rw http.ResponseWriter, req *http.Request) {
 }
 
 func handleSolve(rw http.ResponseWriter, req *http.Request) {
+	time_start := time.Now()
+
 	req.ParseForm()
 
 	var ans string
@@ -112,7 +115,7 @@ func handleSolve(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	fmt.Printf("Found solution! %d moves\n", len(ans))
+	fmt.Printf("Found solution! %d moves. Took %s\n", len(ans), time.Since(time_start))
 
 	respJson, _ := json.Marshal(ans)
 	rw.Write(respJson)
