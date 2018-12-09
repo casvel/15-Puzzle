@@ -5,15 +5,65 @@ Array.prototype.swap = function (i, j)
 	this[j] = tmp;
 }
 
+var num = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0];
+var pos = [15, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+
+// var num = [7, 12, 8, 2, 11, 1, 6, 3, 10, 5, 4, 0, 9, 13, 14, 15];
+// var pos = [11, 5, 3, 7, 10, 9, 6, 0, 2, 12, 8, 4, 1, 13, 14, 15];
+
+var totalWidth = 0, totalHeight = 0;
+
+// Degrees should be only 90 or 270
+function draw(image, degrees, imageRow, imageColumn, totalRows, totalColumns, puzzleRow, puzzleColumn, tileId) {
+    var canvasJQuery = $(document.createElement("canvas"));
+    var canvas = canvasJQuery[0];
+    var ctx = canvas.getContext("2d");
+
+    var maxTotalWidth = 648;
+	var canvasWidth = image.width > maxTotalWidth ? maxTotalWidth : image.width;
+	var aspectRatio = canvasWidth / image.width;
+	var canvasHeight = image.height * aspectRatio;
+	canvasWidth /= totalColumns;
+	canvasHeight /= totalRows;
+
+    // always swap width and height
+    canvas.width = canvasHeight;
+    canvas.height = canvasWidth;
+
+    totalWidth += canvasHeight / totalColumns;
+    totalHeight += canvasWidth / totalRows;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.translate(canvas.width/2, canvas.height/2);
+    ctx.rotate(degrees*Math.PI/180);
+
+    // drawImage(imageObj, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight);
+    var sourceWidth = image.width / totalColumns;
+    var sourceHeight = image.height / totalRows;
+    var sourceX = sourceWidth * (totalRows - imageRow - 1);
+    var sourceY = sourceHeight * imageColumn;
+
+    var tileId = imageRow * totalColumns + imageColumn;
+    if (tileId != 15) {
+    	ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, -canvas.height/2, -canvas.width/2, canvas.height, canvas.width);
+    	document.getElementById('grid').appendChild(canvas);
+    }
+
+    canvas.style.left = puzzleColumn*25 + "%";
+    canvas.style.top = puzzleRow*25 + "%";
+    canvas.style.position = "absolute";
+
+    // Don't know why you can't set javascript width/height with float values.
+    canvasJQuery.width(canvasHeight);
+    canvasJQuery.height(canvasWidth);
+    canvasJQuery.addClass("square");
+    canvasJQuery.attr("id", tileId+1);
+}
+
 $(document).ready(function(){
 
-	var num = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0];
-	var pos = [15, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
-
-
-	//var num = [7, 12, 8, 2, 11, 1, 6, 3, 10, 5, 4, 0, 9, 13, 14, 15];
-	//var pos = [11, 5, 3, 7, 10, 9, 6, 0, 2, 12, 8, 4, 1, 13, 14, 15];
-
+	console.log("num:", num);
+	console.log("pos:", pos);
 
 	Init();
 
@@ -37,6 +87,8 @@ $(document).ready(function(){
 
 			num.swap(pos[tile], pos[0]);
 			pos.swap(tile, 0);	
+			console.log("num:", num);
+			console.log("pos", pos);
 			$('#' + tile).animate(dir[k]);
 		}
 	});
@@ -113,28 +165,27 @@ $(document).ready(function(){
 
 	function Init()
 	{
+		totalWidth = 0;
+		totalHeight = 0;
 		$('#grid').empty();
-		var grid  = document.getElementById('grid');
-		var tiles = "";
+		var img = new Image();
+		img.onload = function() {
+			// for (var i = 0; i < 4; ++i)
+			// 	for (var j = 0; j < 4; ++j)
+			// 		draw(img, 270, i, j, 4, 4, i == 3 && j == 3);
+			for (var i = 0; i < 16; ++i) {
+				var positionInImage = (num[i] == 0 ? 15 : num[i]-1);
+				var imageColumn = positionInImage % 4;
+				var imageRow = Math.floor(positionInImage/4);
+				var puzzleColumn = i % 4;
+				var puzzleRow = Math.floor(i/4);
+				draw(img, 270, imageRow, imageColumn, 4, 4, puzzleRow, puzzleColumn, num[i]);
+			}
 
-		for (var i = 0; i < 16; i++)
-		{
-
-			if (num[i] == 0)
-				continue;
-
-			tiles += '<div class="square" id = ' + num[i] + ' style="left:' + (i%4)*25 + '%; top:' + Math.floor(i/4)*25 + '%; color:' + Math.floor(Math.random()*16777215).toString(16) + '">';
-		    tiles += '<div class="content">';
-		    tiles += '<div class="table">';
-		    tiles += '<div class="table-cell">';
-		    tiles +=  num[i].toString();
-		    tiles += '</div>';
-		    tiles += '</div>';
-		    tiles += '</div>';
-			tiles += '</div>';
+			$("#grid").width(totalWidth);
+			$("#grid").height(totalHeight);
 		}
-
-		grid.innerHTML = tiles;
+		img.src = "images/image.jpg"
 	}
 
 	function isPossible(aConfig)

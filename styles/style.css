@@ -42,15 +42,17 @@
 
 .grid {
 	position: relative;
-	width: 30%;
-    padding-bottom : 30%;
+	/*height: 648;*/
+	/*width: 486;*/
+	/*width: 30%;*/
+    /*padding-bottom : 30%;*/
     border: 1px solid black;
 }
 
 .square {
 	position: absolute;
-	width: 25%;
-	padding-bottom : 25%; /* = width for a 1:1 aspect ratio */
+	/*width: 25%;*/
+	/*padding-bottom : 25%;*/ /* = width for a 1:1 aspect ratio */
 	overflow:hidden;
 	border: 1px solid black;
 }
@@ -74,4 +76,8 @@
     text-align: center;
 
    /* border: 1px solid;*/
+}
+
+canvas {
+	padding: 0px;
 }
