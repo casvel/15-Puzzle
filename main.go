@@ -5,12 +5,13 @@ import (
 	"net/http"
 	"html/template"
 	"encoding/json"
-
 	"strings"
 	"container/heap"
 	"strconv"
 	"math"
 	"time"
+	"os"
+	"path/filepath"
 )
 
 type myMux map[string]map[string]func(http.ResponseWriter, *http.Request)
@@ -21,11 +22,16 @@ var (
 
 	mux myMux = make(map[string]map[string]func(http.ResponseWriter, *http.Request))
 	filehttp  = http.NewServeMux()
+	currentImage = 0
 )
+var images = []string{}
 
 func main() {
 	mux.addRoute("/", handleHome, []string{"GET"})
 	mux.addRoute("/solve", handleSolve, []string{"POST"})
+	// Improve this
+	mux.addRoute("/image/next", handleImage, []string{"GET"})
+	mux.addRoute("/image/prev", handleImage, []string{"GET"})
 	
 	filehttp.Handle("/", http.FileServer(http.Dir("."))) // files
 
@@ -53,6 +59,41 @@ func (*myHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	if f, ok := mux[req.Method][req.URL.Path]; ok {
 		f(rw, req)
 	}
+}
+
+func handleImage(rw http.ResponseWriter, req *http.Request) {
+	if len(images) == 0 {
+		// init array
+	    root := "./images"
+	    filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+
+	    	// if filepath.Ext(path) != ".jpg" {
+	    	// 	os.Remove(path)
+	    	// }
+
+	    	if !info.IsDir() {
+	        	images = append(images, path)
+	        }
+	        return nil
+	    })
+
+	    // for i := range images {
+	   	// 	fmt.Printf("%s\n", images[i])
+	    // }
+	}
+
+	if strings.Contains(req.URL.Path, "next") {
+		currentImage = (currentImage + 1) % len(images)
+	} else {
+		if currentImage == 0 {
+			currentImage = len(images)-1 
+		} else { 
+			currentImage = currentImage-1
+		}
+	}
+
+	respJson, _ := json.Marshal(images[currentImage])
+	rw.Write(respJson)
 }
 
 func handleHome(rw http.ResponseWriter, req *http.Request) {

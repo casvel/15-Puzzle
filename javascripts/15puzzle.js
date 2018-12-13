@@ -5,17 +5,17 @@ Array.prototype.swap = function (i, j)
 	this[j] = tmp;
 }
 
-var totalRows = 4, totalColumns = 4;
 var num = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0];
 var pos = [15, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
 var degrees = 0;
+var imageSource = ""
 
 // var num = [7, 12, 8, 2, 11, 1, 6, 3, 10, 5, 4, 0, 9, 13, 14, 15];
 // var pos = [11, 5, 3, 7, 10, 9, 6, 0, 2, 12, 8, 4, 1, 13, 14, 15];
 
 var totalWidth = 0, totalHeight = 0;
 
-function rotateCoord(r, c, degrees) {
+function rotateCoord(r, c, degrees, totalRows, totalColumns) {
 	if (degrees == 0) {
 		return {row: r, column: c};
 	} if (degrees == 90) {
@@ -28,7 +28,7 @@ function rotateCoord(r, c, degrees) {
 }
 
 // Degrees should be only 90 or 270
-function draw(image, degrees, imageRow, imageColumn, puzzleRow, puzzleColumn) {
+function draw(image, degrees, imageRow, imageColumn, puzzleRow, puzzleColumn, totalRows, totalColumns) {
 	var shouldSwapWidthAndHeight = degrees == 90 || degrees == 270;
 
     var maxTotalWidth = 648;
@@ -57,8 +57,8 @@ function draw(image, degrees, imageRow, imageColumn, puzzleRow, puzzleColumn) {
     var canvas = canvasJQuery[0];
     canvas.width = shouldSwapWidthAndHeight ? canvasHeight : canvasWidth;
    	canvas.height = shouldSwapWidthAndHeight ? canvasWidth : canvasHeight;
-   	canvas.style.left = (true ? puzzleColumn : puzzleRow)*25 + "%";
-    canvas.style.top = (true ? puzzleRow : puzzleColumn)*25 + "%";
+   	canvas.style.left = puzzleColumn*25 + "%";
+    canvas.style.top = puzzleRow*25 + "%";
     canvas.style.position = "absolute";
 
 	var ctx = canvas.getContext("2d");
@@ -68,7 +68,7 @@ function draw(image, degrees, imageRow, imageColumn, puzzleRow, puzzleColumn) {
 
     var sourceWidth = image.width / totalColumns;
     var sourceHeight = image.height / totalRows;
-    var coordRotated = rotateCoord(imageRow, imageColumn, degrees);
+    var coordRotated = rotateCoord(imageRow, imageColumn, degrees, totalRows, totalColumns);
     var sourceX = sourceWidth * coordRotated.column;
     var sourceY = sourceHeight * coordRotated.row;
     var destX = shouldSwapWidthAndHeight ? -canvas.height/2 : -canvas.width/2;
@@ -78,7 +78,7 @@ function draw(image, degrees, imageRow, imageColumn, puzzleRow, puzzleColumn) {
 
 	// drawImage(imageObj, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight);
 	ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight);
-	document.getElementById('grid').appendChild(canvas);
+	document.getElementById("grid").appendChild(canvas);
 }
 
 $(document).ready(function(){
@@ -158,6 +158,11 @@ $(document).ready(function(){
 		Init();
 	});
 
+	$('#prev,#next').click(function() {
+		imageSource = "";
+		Init(this.id);
+	});
+
 	// funciones
 
 	function autoSolve(sAns)
@@ -186,8 +191,12 @@ $(document).ready(function(){
 		})(0);
 	}
 
-	function Init()
+	function Init(imageToGet)
 	{
+		if (imageToGet == null) {
+			imageToGet = "next";
+		}
+
 		console.log("num:", num);
 		console.log("pos:", pos);
 
@@ -196,19 +205,50 @@ $(document).ready(function(){
 		$('#grid').empty();
 		var img = new Image();
 		img.onload = function() {
-			for (var i = 0; i < 16; ++i) {
-				var positionInImage = (num[i] == 0 ? 15 : num[i]-1);
-				var imageColumn = positionInImage % 4;
-				var imageRow = Math.floor(positionInImage/4);
-				var puzzleColumn = true ? pos[num[i]] % 4 :  Math.floor(i/4);
-				var puzzleRow = true ? Math.floor(pos[num[i]]/4) : i % 4;
-				draw(img, degrees, imageRow, imageColumn, puzzleRow, puzzleColumn);
-			}
+			EXIF.getData(img, function() {
+		        var make = EXIF.getTag(this, "Make");
+		        var model = EXIF.getTag(this, "Model");
+		        var orientation = EXIF.getTag(this, "Orientation")
+		        console.log(make, model, orientation);
 
-			$("#grid").width(totalWidth);
-			$("#grid").height(totalHeight);
+		        if (orientation == 1) {
+		        	degrees = 0
+		        } else if (orientation == 6) {
+		        	degrees = 90;
+		        } else if (orientation == 3) {
+		        	degrees = 180;
+		        } else if (orientation == 8) {
+		        	degrees = 270;
+		        }
+
+		        for (var i = 0; i < 16; ++i) {
+					var positionInImage = (num[i] == 0 ? 15 : num[i]-1);
+					var imageColumn = positionInImage % 4;
+					var imageRow = Math.floor(positionInImage/4);
+					var puzzleColumn = true ? pos[num[i]] % 4 :  Math.floor(i/4);
+					var puzzleRow = true ? Math.floor(pos[num[i]]/4) : i % 4;
+					draw(img, degrees, imageRow, imageColumn, puzzleRow, puzzleColumn, 4, 4, "grid");
+				}
+				$("#grid").width(totalWidth);
+				$("#grid").height(totalHeight);
+
+				$("#preview").attr("src", imageSource);
+				$("#preview").width(totalWidth/3);
+				$("#preview").height(totalHeight/3);
+		    });
 		}
-		img.src = "images/image.jpg"
+
+		if (imageSource === "") {
+			$.ajax({
+				url: "/image/"+imageToGet,
+				type: "GET"
+			}).done(function(resp){
+				imageSource = resp.replace(/\"/g, "");
+				img.src = imageSource;
+			});
+		} else {
+			img.src = imageSource
+		}
 	}
 
 	function isPossible(aConfig)
