@@ -3,29 +3,30 @@
     <link rel="stylesheet" href="styles/style.css">
   </head>
   <body>
-
-    <!-- <canvas id="canvas" width="2592" height="1944"> -->
-    <!-- <canvas id="canvas" width="648" height="486"> -->
-    <!-- </canvas> -->
   	
   	<div align="center">
-  		<a href="#" class="myButton" id="solve">Solve</a>
-  		<a href="#" class="myButton" id="shuffle">Shuffle</a>
-      <!-- <a href="#" class="myButton" id="rotate">Rotate</a> -->
+      <a href="#!" class="myButton" id="prev">&laquo; Prev</a>
+  		<a href="#!" class="myButton" id="solve">Solve</a>
+  		<a href="#!" class="myButton" id="shuffle">Shuffle</a>
+      <a href="#!" class="myButton" id="next">Next &raquo;</a>
   	</div>
 
   	<div align="center" style="padding:10px; height:0%" class="table">
-      <div class="table-cell" style="padding-right:50px">
-        <a href="#" class="myButton" id="prev" style="float:right">Prev</a>
-      </div class="inner">
-  		<div class="grid table-cell" id="grid"> </div>
-      <div class="table-cell" style="padding-left:50px">
-        <a href="#" class="myButton" id="next" style="float:left">Next</a>
+      <div class="table-cell" style="width:33%">
+        <div style="float:right; padding-right:50px; padding-bottom:60%;">
+          <img id="preview"/>
+        </div>
+      </div>
+      <div class="table-cell">
+  		  <div align="center" class="grid" id="grid"> </div>
+      </div>
+      <div class="table-cell" style="width:33%; min-width:35%">
+        <div></div>
       </div>
   	</div>
-    <div align="center">
-    </div>
 
+    <div id="carousel">
+    </div>
     
     <script src="javascripts/jquery-2.2.1.min.js"></script>
     <script src="javascripts/exif.min.js"></script>
