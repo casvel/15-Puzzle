@@ -3,31 +3,49 @@
     <link rel="stylesheet" href="styles/style.css">
   </head>
   <body>
-  	
-  	<div align="center">
-      <a href="#!" class="myButton" id="prev">&laquo; Prev</a>
-  		<a href="#!" class="myButton" id="solve">Solve</a>
-  		<a href="#!" class="myButton" id="shuffle">Shuffle</a>
-      <a href="#!" class="myButton" id="next">Next &raquo;</a>
-  	</div>
 
-  	<div align="center" style="padding:10px; height:0%" class="table">
-      <div class="table-cell" style="width:33%">
-        <div style="float:right; padding-right:50px; padding-bottom:60%;">
-          <img id="preview"/>
-        </div>
+    <div style="background-color: #F7F7F7; padding:10px">
+      <div class="jumbotron text">
+        <h1>¡Feliciades, amor!</h1>
+        <div class="date"><span>11 ENERO 2019</span></div>
+        <p id="text-1">Felicidades por todos tus logros en esta vuelta al sol que acabas de completar.</p>
+        <p id="text-2" class="hidden">Te deseo todo lo bonito de esta vida. Y que sigas acumulando éxitos y experiencias que te llenen el alma de felicidad.</p>
+        <p id="text-3" class="hidden">Gracias por dejarme estar a tu lado para verte crecer y aprender de la vida. Espero poder compartir más momentos contigo por siempre.</p>
+        <p id="text-4" class="hidden">Mientras tanto, te obsequio esto para que recuerdes nuestros momentos juntos.</p>
+        <a id="more" class="more">&#10148;</a>
       </div>
-      <div class="table-cell">
-  		  <div align="center" class="grid" id="grid"> </div>
-      </div>
-      <div class="table-cell" style="width:33%; min-width:35%">
-        <div></div>
-      </div>
-  	</div>
+    	
+      <div class="15puzzle hidden" style="padding-top:20px">
+      	<div align="center" class="15puzzle hidden">
+          <a href="#!" class="myButton mirror" id="prev">&#10148;</a>
+      		<a href="#!" class="myButton" id="solve">Solve</a>
+      		<a href="#!" class="myButton" id="shuffle">Shuffle</a>
+          <a href="#!" class="myButton" id="next">&#10148;</a>
+      	</div>
 
-    <div id="carousel">
+      	<div align="center" style="padding:10px; height:0%" class="table">
+          <div class="table-cell" style="width:33%">
+            <div style="float:right; padding-right:50px; padding-bottom:60%;">
+              <img id="preview" style="border: 1px solid black;"/>
+            </div>
+          </div>
+          <div class="table-cell">
+      		  <div align="center" class="grid" id="grid"> </div>
+          </div>
+          <div class="table-cell" style="width:33%; min-width:35%">
+            <div></div>
+          </div>
+      	</div>
+
+        <div style="padding-left:5%; padding-right:5%;">
+          <div id="carousel" class="15puzzle">
+          </div>
+        <div>
+      </div>
     </div>
     
+    <link href="https://fonts.googleapis.com/css?family=Great+Vibes" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Libre+Baskerville" rel="stylesheet">
     <script src="javascripts/jquery-2.2.1.min.js"></script>
     <script src="javascripts/exif.min.js"></script>
     <script src="javascripts/15puzzle.js"></script>

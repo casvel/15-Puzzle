@@ -9,6 +9,7 @@ import (
 	"container/heap"
 	"strconv"
 	"math"
+	"math/rand"
 	"time"
 	"os"
 	"path/filepath"
@@ -65,22 +66,30 @@ func handleImage(rw http.ResponseWriter, req *http.Request) {
 	mutex.Lock()
 	if len(images) == 0 {
 		// init array
-	    root := "./images"
+	    root := "./images_reduced"
 	    filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 
-	    	// if filepath.Ext(path) != ".jpg" {
-	    	// 	os.Remove(path)
-	    	// }
-
-	    	if !info.IsDir() {
-	        	images = append(images, path)
-	        }
+	    	if filepath.Ext(path) != ".jpeg" && filepath.Ext(path) != ".jpg" {
+	    		// os.Remove(path)
+	    	} else {
+		    	if !info.IsDir() {
+		        	images = append(images, path)
+		        }
+		    }
 	        return nil
 	    })
 
 	    // for i := range images {
 	   	// 	fmt.Printf("%s\n", images[i])
 	    // }
+
+	    r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	    for i := 0; i < len(images); i += 1 {
+	    	j := r.Intn(len(images))
+	    	temp := images[j]
+	    	images[j] = images[i]
+	    	images[i] = temp
+	    }
 	}
 	mutex.Unlock();
 

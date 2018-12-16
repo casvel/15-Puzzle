@@ -17,6 +17,9 @@ var pos = [15, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
 var degrees = 0;
 var imageSource = "";
 var lastImage;
+var textPosition = 1;
+var textTransitionDone = true;
+var isSolving = false;
 
 // var num = [7, 12, 8, 2, 11, 1, 6, 3, 10, 5, 4, 0, 9, 13, 14, 15];
 // var pos = [11, 5, 3, 7, 10, 9, 6, 0, 2, 12, 8, 4, 1, 13, 14, 15];
@@ -33,7 +36,7 @@ $(document).ready(function(){
 		url: "/images",
 		type: "GET"
 	}).done(function(resp){
-		console.log(resp);
+		// console.log(resp);
 		allImages = JSON.parse(resp);
 		for (var i = 0; i < allImages.length; ++i) {
 			var slide = $(document.createElement('div'));
@@ -70,7 +73,32 @@ $(document).ready(function(){
 
 	// eventos
 
+	$("#more").click(function(e) {
+		if (!textTransitionDone) {
+			return;
+		}
+
+		textTransitionDone = false;
+
+		if (textPosition < 4) {
+			$("#text-"+textPosition).fadeOut("slow", function() {
+				textPosition = textPosition + 1;
+				$("#text-"+textPosition).fadeIn("slow", function() {
+					textTransitionDone = true;
+				});
+			});
+		} else {
+			$(".text").fadeOut("slow", function() {
+				$(".15puzzle").fadeIn("slow");
+			});
+		}
+	});
+
 	$('#grid').delegate('.square', 'click', function(e){
+		if (isSolving) {
+			return;
+		}
+
 		var tile = this.id;
 		var idx  = pos[tile];
 		var dX   = [0, 1, 0, -1], dY = [1, 0, -1, 0];
@@ -96,6 +124,7 @@ $(document).ready(function(){
 
 	$('#solve').click(function()
 	{
+		isSolving = true;
 		$.ajax({
 			url: "/solve",
 			type: "POST",
@@ -163,6 +192,9 @@ $(document).ready(function(){
 		(function move(i){
 			$(seq[i][0]).animate(seq[i][1], 200, function(){
 				i+1 < seq.length && move(i+1); 
+				if (i == seq.length-1) {
+					isSolving = false;
+				}
 			})
 		})(0);
 	}
@@ -183,8 +215,9 @@ $(document).ready(function(){
 		        var orientation = EXIF.getTag(this, "Orientation")
 		        console.log(make, model, orientation);
 
+		        degrees = 0;
 		        if (orientation == 1) {
-		        	degrees = 0
+		        	degrees = 0;
 		        } else if (orientation == 6) {
 		        	degrees = 90;
 		        } else if (orientation == 3) {
