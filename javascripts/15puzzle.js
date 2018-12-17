@@ -42,6 +42,7 @@ $(document).ready(function(){
 			var slide = $(document.createElement('div'));
 			slide.addClass("slide");
 			var img = new Image();
+			img.onload = onLoadThumbnailImage(img);
 			img.src = allImages[i];
 			img.width = 70;
 			img.height = 70;
@@ -245,6 +246,28 @@ $(document).ready(function(){
 		}
 
 		img.src = imageSource
+	}
+
+	function onLoadThumbnailImage(img) {
+		var imageToLoad = img;
+		return function() {
+			EXIF.getData(imageToLoad, function() {
+		        var orientation = EXIF.getTag(this, "Orientation");
+
+		        var thumbailDegrees = 0;
+		        if (orientation == 1) {
+		        	thumbailDegrees = 0;
+		        } else if (orientation == 6) {
+		        	thumbailDegrees = 90;
+		        } else if (orientation == 3) {
+		        	thumbailDegrees = 180;
+		        } else if (orientation == 8) {
+		        	thumbailDegrees = 270;
+		        }
+
+		        $(img).css("transform", "rotate("+thumbailDegrees+"deg)");
+		    });
+		};
 	}
 
 	function isPossible(aConfig)
