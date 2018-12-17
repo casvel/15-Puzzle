@@ -33,7 +33,7 @@ $(document).ready(function(){
 	// Init();
 
 	$.ajax({
-		url: "/images",
+		url: "/15Puzzle/images",
 		type: "GET"
 	}).done(function(resp){
 		// console.log(resp);
@@ -126,7 +126,7 @@ $(document).ready(function(){
 	{
 		isSolving = true;
 		$.ajax({
-			url: "/solve",
+			url: "/15Puzzle/solve",
 			type: "POST",
 			dataType: "json",
 			data: {grid: num}

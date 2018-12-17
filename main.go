@@ -1,3 +1,5 @@
+// https://puzzleanel.appspot.com
+
 package main
 
 import (
@@ -14,54 +16,96 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+
+	// "cloud.google.com/go/pubsub"
+	// "cloud.google.com/go/storage"
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
+	"google.golang.org/appengine"
 )
 
-type myMux map[string]map[string]func(http.ResponseWriter, *http.Request)
-type myHandler struct {}
+// type myMux map[string]map[string]func(http.ResponseWriter, *http.Request)
+// type myHandler struct {}
+
+type appHandler func(http.ResponseWriter, *http.Request)
 
 var (
 	port = 8010
 
-	mux myMux = make(map[string]map[string]func(http.ResponseWriter, *http.Request))
+	// mux myMux = make(map[string]map[string]func(http.ResponseWriter, *http.Request))
 	filehttp  = http.NewServeMux()
 	currentImage = -1
 )
 var images = []string{}
 
 func main() {
-	mux.addRoute("/", handleHome, []string{"GET"})
-	mux.addRoute("/solve", handleSolve, []string{"POST"})
-	mux.addRoute("/images", handleImage, []string{"GET"})
+	// mux.addRoute("/", handleHome, []string{"GET"})
+	// mux.addRoute("/solve", handleSolve, []string{"POST"})
+	// mux.addRoute("/images", handleImage, []string{"GET"})
 	
-	filehttp.Handle("/", http.FileServer(http.Dir("."))) // files
+	// filehttp.Handle("/", http.FileServer(http.Dir("."))) // files
 
-	fmt.Printf("Server running on port %d\n", port)
+	r := mux.NewRouter()
+	r.Handle("/", http.RedirectHandler("/15Puzzle", http.StatusFound))
 
-	var h *myHandler
-	http.ListenAndServe(fmt.Sprintf(":%d", port), h)
+	r.Methods("GET").Path("/15Puzzle").Handler(appHandler(handleHome))
+	r.Methods("POST").Path("/15Puzzle/solve").Handler(appHandler(handleSolve))
+	r.Methods("GET").Path("/15Puzzle/images").Handler(appHandler(handleImage))
+	r.PathPrefix("/javascripts/").Handler(http.FileServer(http.Dir(".")))
+	r.PathPrefix("/styles/").Handler(http.FileServer(http.Dir(".")))
+	r.PathPrefix("/images_reduced/").Handler(http.FileServer(http.Dir(".")))
+
+	// filehttp.Handle("/javascripts", http.FileServer(http.Dir("./javascripts"))) // files
+
+	// r.PathPrefix("/").Handler(http.FileServer(http.Dir(".")))
+
+	fmt.Printf("Server for Anel's Puzzle running on port %d\n", port);
+
+	// [START request_logging]
+	// Delegate all of the HTTP routing and serving to the gorilla/mux router.
+	// Log all requests using the standard Apache format.
+	http.Handle("/", handlers.CombinedLoggingHandler(os.Stderr, r))
+
+	// var h *myHandler
+	// http.ListenAndServe(fmt.Sprintf(":%d", port), r) // Uncomment this line to make it work locally
+
+	appengine.Main() // Comment this line to make it work locally
 }
 
-func (m *myMux) addRoute(path string, f func(http.ResponseWriter, *http.Request), methods []string) {
-	for i := range methods {
-		_, ok := (*m)[methods[i]]
-		if ok == false {
-			(*m)[methods[i]] = make(map[string]func(http.ResponseWriter, *http.Request))
-		}
-		(*m)[methods[i]][path] = f
-	}
-}
+// func (m *myMux) addRoute(path string, f func(http.ResponseWriter, *http.Request), methods []string) {
+// 	for i := range methods {
+// 		_, ok := (*m)[methods[i]]
+// 		if ok == false {
+// 			(*m)[methods[i]] = make(map[string]func(http.ResponseWriter, *http.Request))
+// 		}
+// 		(*m)[methods[i]][path] = f
+// 	}
+// }
 
-func (*myHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+func (fn appHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	fmt.Printf("Serving HTTP request %s\n", req.URL.Path);
+
 	if (strings.Contains(req.URL.Path, ".")) {
+		fmt.Printf("Returning static file\n");
 		filehttp.ServeHTTP(rw, req)
 		return;
 	}
-	if f, ok := mux[req.Method][req.URL.Path]; ok {
-		f(rw, req)
-	}
+
+	fn(rw, req);
+
+	
+
+	// fmt.Printf("Handling request\n");
+	// if f, ok := mux[req.Method][req.URL.Path]; ok {
+	// 	f(rw, req)
+	// } else {
+	// 	fmt.Printf("Couldn't find handler for request %s\n", req.URL.Path);
+	// }
 }
 
 func handleImage(rw http.ResponseWriter, req *http.Request) {
+	fmt.Printf("Handle image\n");
+
 	var mutex = &sync.Mutex{}
 	mutex.Lock()
 	if len(images) == 0 {
@@ -112,6 +156,8 @@ func handleImage(rw http.ResponseWriter, req *http.Request) {
 }
 
 func handleHome(rw http.ResponseWriter, req *http.Request) {
+	fmt.Printf("Handle home\n");
+
 	t, err  := template.ParseFiles("views/index.html")
 	if err != nil {
 		panic(err)
@@ -120,6 +166,8 @@ func handleHome(rw http.ResponseWriter, req *http.Request) {
 }
 
 func handleSolve(rw http.ResponseWriter, req *http.Request) {
+	fmt.Printf("Handle solve\n");
+
 	time_start := time.Now()
 
 	req.ParseForm()
